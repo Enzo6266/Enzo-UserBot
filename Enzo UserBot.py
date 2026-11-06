@@ -37,9 +37,11 @@ os.makedirs(TEMP_PATH, exist_ok=True)
 # ────────────────────────────────────────────────
 
 import os
+import os
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 
 # Tumhari API details
 API_ID = 37536122
@@ -48,7 +50,7 @@ API_HASH = "b7ab88ce56dc7d9a9f0b337e56614906"
 # Apni asli 200+ characters wali session string yahan daal do
 SESSION = "1AZWarzQBu77ec4OAaMk399luM35FoTmN14fUtPiKQEQJQYU-Y3xY7V1G-SkL5SxaQnk0B8rBt5y9mxP3iqWL6f2PVHdYsVmh9Kjc50Tw2PDBatsbSUKUmUTfuRlNPRtFxo4Q0X8zfCC1u6WULcka_67V7KGtGxmG_W4jY6rZxAFyqtaZG_tYXqA3RjChWtnPjBFgYjVptGqvfxo0Axh5k__SA2HGHTYuNiqOOA6M8rR0BSzATnudU10IRs4WUHpcXUdGafYwC2oBOACB8Dz11iEN4Bptd0Wfv2A8fi02hW0Tw1NBa3fGU58dQ9-Mbwkbb7oP24CKG93osE08CMTTi2xWdLZk5ug="
 
-# 1. Render port 10000 ke liye health check server
+# 1. Render port 10000 ke liye health check server (Ye error khatam kar dega)
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -65,7 +67,7 @@ threading.Thread(target=run_web_server, daemon=True).start()
 
 # 2. Telegram UserBot client
 bot = TelegramClient(
-    SESSION,
+    StringSession(SESSION),
     API_ID,
     API_HASH,
     auto_reconnect=True,
@@ -78,8 +80,7 @@ if __name__ == "__main__":
     bot.start()
     print("Bot successfully live ho gaya hai!")
     bot.run_until_disconnected()
-    
-
+        
 # ────────────────────────────────────────────────
 #                 STORAGE FILES
 # ────────────────────────────────────────────────
