@@ -36,8 +36,8 @@ os.makedirs(TEMP_PATH, exist_ok=True)
 #                 USERBOT CONFIG
 # ────────────────────────────────────────────────
 import os
-import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import asyncio
+from aiohttp import web
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 
@@ -46,25 +46,7 @@ API_ID = 37536122
 API_HASH = "b7ab88ce56dc7d9a9f0b337e56614906"
 SESSION = "1AZWarzQBu77ec4OAaMk399luM35FoTmN14fUtPiKQEQJQYU-Y3xY7V1G-SkL5SxaQnk0B8rBt5y9mxP3iqWL6f2PVHdYsVmh9Kjc50Tw2PDBatsbSUKUmUTfuRlNPRtFxo4Q0X8zfCC1u6WULcka_67V7KGtGxmG_W4jY6rZxAFyqtaZG_tYXqA3RjChWtnPjBFgYjVptGqvfxo0Axh5k__SA2HGHTYuNiqOOA6M8rR0BSzATnudU10IRs4WUHpcXUdGafYwC2oBOACB8Dz11iEN4Bptd0Wfv2A8fi02hW0Tw1NBa3fGU58dQ9-Mbwkbb7oP24CKG93osE08CMTTi2xWdLZk5ug="
 
-# 1. Render port 10000 ke liye built-in HTTP server (No extra requirements needed)
-class HealthCheckHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Enzo UserBot is running 24/7!")
-    
-    def log_message(self, format, *args):
-        pass
-
-def run_web_server():
-    port = int(os.environ.get("PORT", 10000))
-    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
-    server.serve_forever()
-
-# Background me web server start kar rahe hain taaki Render "Live" rakhe
-threading.Thread(target=run_web_server, daemon=True).start()
-
-# 2. Telegram UserBot client
+# 1. Telethon Client Setup
 bot = TelegramClient(
     StringSession(SESSION),
     API_ID,
@@ -74,17 +56,44 @@ bot = TelegramClient(
     retry_delay=3
 )
 
-# Test command
+# Test commands
 @bot.on(events.NewMessage(outgoing=True, pattern=r"\.ping"))
 async def ping_handler(event):
-    await event.edit("Pong! Enzo UserBot is fully active! ⚡")
+    await event.edit("Pong! Enzo UserBot is active and running! ⚡")
+
+@bot.on(events.NewMessage(outgoing=True, pattern=r"\.meow"))
+async def meow_handler(event):
+    await event.edit("Meow! 🐾")
+
+# 2. Aiohttp Web Server (Render port binding ke liye)
+async def handle(request):
+    return web.Response(text="Enzo UserBot is running 24/7!")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"Web server started on port {port}")
+
+# 3. Main Async Runner jo dono ko ek sath chalayega
+async def main():
+    # Web server start karo taaki Render khush rahe
+    await start_web_server()
+    
+    # Telegram bot start karo
+    print("Starting Telegram UserBot...")
+    await bot.start()
+    print("Enzo UserBot successfully connected and listening for commands!")
+    
+    # Bot ko chalu rakho
+    await bot.run_until_disconnected()
 
 if __name__ == "__main__":
-    print("Enzo UserBot start ho raha hai...")
-    bot.start()
-    print("Bot successfully live ho gaya hai!")
-    bot.run_until_disconnected()
-            
+    asyncio.run(main())            
 
 # ────────────────────────────────────────────────
 #                 RUNTIME STATE
