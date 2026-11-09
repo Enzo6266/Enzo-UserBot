@@ -2566,7 +2566,7 @@ async def auto_handler(event):
     if not sender:
         return
 
-    if sender == OWNER_ID:
+    if sender == OWNER_ID:8985714258
         return
 
     if sender in global_muted or sender in muted_users:
